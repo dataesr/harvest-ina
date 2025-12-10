@@ -37,9 +37,13 @@ def parse_data_ina_list(txt):
     soup = BeautifulSoup(txt, 'html.parser')
     trs = soup.find_all('tr', class_='result_line_a') + soup.find_all('tr', class_='result_line_b')
     for tr in trs:
-        date = tr.find('td', class_='date_column').get_text()
-        url = tr.find('a').attrs['href'].split('?rang')[0]
-        data.append({'url': url, 'date': date, 'year': date[-4:]})
+        try:
+            date = tr.find('td', class_='date_column').get_text()
+            url = tr.find('a').attrs['href'].split('?rang')[0]
+            data.append({'url': url, 'date': date, 'year': date[-4:]})
+        except:
+            logger.debug(f'error with {tr}')
+            continue
     logger.debug(f'{len(data)} lines detected')
     return data
 
