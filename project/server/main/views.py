@@ -5,6 +5,7 @@ import redis
 from flask import Blueprint, current_app, jsonify, render_template, request
 from rq import Connection, Queue
 from project.server.main.tasks import create_task_list_urls
+from project.server.main.concat import concat
 from project.server.main.logger import get_logger
 
 default_timeout = 4320000
@@ -27,6 +28,15 @@ def run_list_urls():
     with Connection(redis.from_url(current_app.config["REDIS_URL"])):
         q = Queue(name="harvest-ina", default_timeout=default_timeout)
         task = q.enqueue(create_task_list_urls, args)
+    response_object = {"status": "success", "data": {"task_id": task.get_id()}}
+    return jsonify(response_object), 202
+
+@main_blueprint.route("/concat", methods=["POST"])
+def run_concat():
+    args = request.get_json(force=True)
+    with Connection(redis.from_url(current_app.config["REDIS_URL"])):
+        q = Queue(name="harvest-ina", default_timeout=default_timeout)
+        task = q.enqueue(concat, args)
     response_object = {"status": "success", "data": {"task_id": task.get_id()}}
     return jsonify(response_object), 202
 
